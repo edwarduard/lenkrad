@@ -1,0 +1,123 @@
+#include "HID-Project.h"
+/* const int lightC = 0;
+const int stationBrake = 1;
+const int phaseA = 2;
+const int phaseB = 3; */
+static uint8_t doorA = 1;
+//const int doorBack = 5;
+//const int gearR = 6;
+//const int gearN = 7;
+//const int gearD = 8;
+static uint8_t doorB = 2;
+static uint8_t powerToggle = 3;
+//const int keyToggle = 11;
+static uint8_t parkingBrake = 4;
+//const int wiperToggle = 13;
+//const indicateLeft = A0;
+//const indicateRight = A1;
+//const lightA = A2;
+//const lightB = A3;
+//const pedalBrake = A4;
+//const pedalGas = A5; */
+volatile unsigned int counter = 32767;
+int steeringAxisi = 32767;
+int steeringAxis;
+int fac = 32767/3000;
+boolean btval[3];
+int bts[3] = {4,9,10};
+int oldState = LOW;
+
+boolean switchChanged() {
+
+   int currentState = digitalRead(5);
+   if(currentState == oldState)
+      return false;
+   oldState = currentState;
+   return true;
+  } 
+
+void setup() {
+  /*pinMode(lightC,INPUT_PULLUP);
+  pinMode(stationBrake,INPUT_PULLUP);
+  pinMode(phaseA,INPUT_PULLUP);
+  pinMode(phaseB,INPUT_PULLUP);
+  pinMode(doorA,INPUT_PULLUP);
+  pinMode(doorBack,INPUT_PULLUP);
+  pinMode(gearR,INPUT_PULLUP);
+  pinMode(gearN,INPUT_PULLUP);
+  pinMode(gearD,INPUT_PULLUP);
+  pinMode(doorB,INPUT_PULLUP);
+  pinMode(powerToggle,INPUT_PULLUP);
+  pinMode(keyToggle,INPUT_PULLUP);
+  pinMode(parkingBrake,INPUT_PULLUP);
+  pinMode(wiperToggle,INPUT_PULLUP);
+  pinMode(indicateLeft,INPUT_PULLUP);
+  pinMode(indicateRight,INPUT_PULLUP);
+  pinMode(lightA,INPUT_PULLUP);
+  pinMode(lightB,INPUT_PULLUP); */
+  pinMode(5, INPUT_PULLUP);
+  pinMode(2, INPUT_PULLUP);
+  pinMode(3, INPUT_PULLUP);
+  pinMode(A4, INPUT);
+  pinMode(A5, INPUT);
+  pinMode(4, INPUT_PULLUP);
+  pinMode(9, INPUT_PULLUP);
+  //pinMode(10,INPUT_PULLUP);
+  //pinMode(12, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(2), ai0, RISING);
+  attachInterrupt(digitalPinToInterrupt(3), ai1, RISING);
+  Gamepad.begin();
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Axis's
+  int counteri = counter-32767;
+  int counterii = constrain(counteri,-3000,3000);
+  int steeringAxisi =(counterii*10.892);
+  //unsigned int steeringAxisii = (int) steeringAxisi;
+  Gamepad.xAxis(steeringAxisi);
+  int Axis1 = -127+((analogRead(A5)-112)*0.56);
+  int Axis1i = constrain(Axis1,-127,127);
+  Gamepad.zAxis(Axis1i);
+  int Axis2 = -127+((analogRead(A4)-120)*0.57);
+  int Axis2i = constrain(Axis2,-127,127);
+  Gamepad.rzAxis(Axis2i);
+  Serial.println(switchChanged());
+  //Serial.println(oldState);
+  /* for (int i=0;i<3;i++){
+    if(!btval[i]){
+      if (digitalRead(bts[i])==LOW) {
+        Gamepad.press(i+1);
+        btval[i] = true;
+        }
+      }
+      else {
+        if (digitalRead(bts[i])==HIGH){
+        Gamepad.release(i+1);
+        btval[i] = false;
+        }
+      }
+    } */
+  // Buttons!
+
+  if(switchChanged()){Gamepad.press(powerToggle);}else{Gamepad.release(powerToggle);}
+  if(!digitalRead(4)){Gamepad.press(doorA);}else{Gamepad.release(doorA);}
+  if(!digitalRead(9)){Gamepad.press(doorB);}else{Gamepad.release(doorB);}
+  //if(!digitalRead(10)){Gamepad.press(powerToggle);}else{Gamepad.release(powerToggle);}
+  Gamepad.write();
+}
+void ai0() {
+  if(digitalRead(3)==LOW) {
+  counter++;
+  }else{
+  counter--;
+  }
+  }
+void ai1() {
+  if(digitalRead(2)==LOW) {
+  counter--;
+  }else{
+  counter++;
+  }
+  }
